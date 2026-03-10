@@ -1,0 +1,121 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "Packet Ingest Rate",
+      "description": "Packets received per 5-second bucket",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "gradientMode": "scheme",
+            "lineWidth": 1,
+            "barAlignment": 0,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "mode": "none" }
+          },
+          "unit": "short",
+          "displayName": "packets / 5s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres" },
+          "rawSql": "SELECT time_bucket('5 seconds', time) AS time, COUNT(*) AS packets FROM telemetry WHERE $__timeFilter(time) GROUP BY 1 ORDER BY 1",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Total Data Volume",
+      "description": "Cumulative payload bytes ingested",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "green", "mode": "fixed" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "scheme",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "mode": "none" }
+          },
+          "unit": "decbytes",
+          "displayName": "cumulative bytes"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres" },
+          "rawSql": "SELECT time_bucket('5 seconds', time) AS time, SUM(octet_length(data_field)) OVER (ORDER BY time_bucket('5 seconds', time)) AS volume FROM telemetry WHERE $__timeFilter(time) GROUP BY 1 ORDER BY 1",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Recent Space Packets",
+      "description": "Latest packets received by the system",
+      "type": "table",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 10 },
+      "datasource": { "type": "postgres", "uid": "" },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "time" }, "properties": [{ "id": "displayName", "value": "Received At" }] },
+          { "matcher": { "id": "byName", "options": "apid" }, "properties": [{ "id": "displayName", "value": "APID" }] },
+          { "matcher": { "id": "byName", "options": "data_bytes" }, "properties": [{ "id": "displayName", "value": "Payload Size (B)" }] },
+          { "matcher": { "id": "byName", "options": "fecf" }, "properties": [{ "id": "displayName", "value": "FECF (CRC32)" }] }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [{ "displayName": "Received At", "desc": true }]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres" },
+          "rawSql": "SELECT time, apid, octet_length(data_field) AS data_bytes, to_hex(fecf::int) AS fecf FROM telemetry ORDER BY time DESC LIMIT 50",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "tags": ["telemetry", "ccsds", "mission-control"],
+  "templating": { "list": [] },
+  "time": { "from": "now-5m", "to": "now" },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "Mission Control — Telemetry Ingest",
+  "uid": "astro-mission-control",
+  "version": 1
+}
