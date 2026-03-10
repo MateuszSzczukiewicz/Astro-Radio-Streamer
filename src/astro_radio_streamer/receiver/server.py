@@ -3,8 +3,12 @@ from __future__ import annotations
 import asyncio
 import logging
 import signal
+from typing import TYPE_CHECKING
 
 from .buffer import READ_SIZE, FrameBuffer
+
+if TYPE_CHECKING:
+    from ..protocol.frame import TelemetryFrame
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +20,7 @@ READ_TIMEOUT = 10.0
 async def handle_client(
     reader: asyncio.StreamReader,
     writer: asyncio.StreamWriter,
+    queue: asyncio.Queue[TelemetryFrame],
 ) -> None:
     peer = writer.get_extra_info("peername")
     logger.info("Connection from %s", peer)
@@ -33,11 +38,15 @@ async def handle_client(
 
             frames = buf.feed(data)
 
+            for frame in frames:
+                queue.put_nowait(frame)
+
             if frames:
                 logger.info(
-                    "Decoded %d frames (buffer: %d B)",
+                    "Enqueued %d frames (buffer: %d B, queue: %d)",
                     len(frames),
                     buf.pending,
+                    queue.qsize(),
                 )
     except TimeoutError:
         logger.warning("Read timeout (%ss), closing: %s", READ_TIMEOUT, peer)
@@ -50,10 +59,17 @@ async def handle_client(
 
 
 async def start_server(
+    queue: asyncio.Queue[TelemetryFrame],
     host: str = HOST,
     port: int = PORT,
 ) -> None:
-    server = await asyncio.start_server(handle_client, host, port)
+    def _on_connect(
+        reader: asyncio.StreamReader,
+        writer: asyncio.StreamWriter,
+    ) -> asyncio.Task[None]:
+        return asyncio.create_task(handle_client(reader, writer, queue))
+
+    server = await asyncio.start_server(_on_connect, host, port)
 
     addrs = ", ".join(str(s.getsockname()) for s in server.sockets)
     logger.info("Listening on %s", addrs)
