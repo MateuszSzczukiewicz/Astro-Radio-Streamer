@@ -1,0 +1,27 @@
+[project]
+name = "astro-radio-streamer"
+version = "0.1.0"
+description = "High-Throughput Telemetry Ingestion Simulator"
+requires-python = ">=3.13"
+readme = "README.md"
+license = { text = "MIT" }
+dependencies = ["asyncpg>=0.30", "pydantic>=2.11", "pydantic-settings>=2.9"]
+
+[project.scripts]
+astro-receiver = "astro_radio_streamer.receiver.__main__:main"
+astro-simulator = "astro_radio_streamer.simulator.__main__:main"
+
+[dependency-groups]
+dev = ["pytest>=8.4", "pytest-asyncio>=0.26", "ruff>=0.11", "mypy>=1.15"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
