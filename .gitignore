@@ -10,3 +10,7 @@ docs/
 boofuzz-results/
 .coverage
 .env
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
