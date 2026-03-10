@@ -11,7 +11,7 @@
       "description": "Packets received per 5-second bucket",
       "type": "timeseries",
       "gridPos": { "h": 10, "w": 12, "x": 0, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "" },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "TimescaleDB" },
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -36,7 +36,7 @@
       },
       "targets": [
         {
-          "datasource": { "type": "postgres" },
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "TimescaleDB" },
           "rawSql": "SELECT time_bucket('5 seconds', time) AS time, COUNT(*) AS packets FROM telemetry WHERE $__timeFilter(time) GROUP BY 1 ORDER BY 1",
           "format": "time_series",
           "refId": "A"
@@ -48,7 +48,7 @@
       "description": "Cumulative payload bytes ingested",
       "type": "timeseries",
       "gridPos": { "h": 10, "w": 12, "x": 12, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "" },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "TimescaleDB" },
       "fieldConfig": {
         "defaults": {
           "color": { "fixedColor": "green", "mode": "fixed" },
@@ -72,7 +72,7 @@
       },
       "targets": [
         {
-          "datasource": { "type": "postgres" },
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "TimescaleDB" },
           "rawSql": "SELECT time_bucket('5 seconds', time) AS time, SUM(octet_length(data_field)) OVER (ORDER BY time_bucket('5 seconds', time)) AS volume FROM telemetry WHERE $__timeFilter(time) GROUP BY 1 ORDER BY 1",
           "format": "time_series",
           "refId": "A"
@@ -84,7 +84,7 @@
       "description": "Latest packets received by the system",
       "type": "table",
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 10 },
-      "datasource": { "type": "postgres", "uid": "" },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "TimescaleDB" },
       "fieldConfig": {
         "defaults": {},
         "overrides": [
@@ -100,7 +100,7 @@
       },
       "targets": [
         {
-          "datasource": { "type": "postgres" },
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "TimescaleDB" },
           "rawSql": "SELECT time, apid, octet_length(data_field) AS data_bytes, to_hex(fecf::int) AS fecf FROM telemetry ORDER BY time DESC LIMIT 50",
           "format": "table",
           "refId": "A"
@@ -112,7 +112,7 @@
   "schemaVersion": 39,
   "tags": ["telemetry", "ccsds", "mission-control"],
   "templating": { "list": [] },
-  "time": { "from": "now-5m", "to": "now" },
+  "time": { "from": "now-15m", "to": "now" },
   "timepicker": {},
   "timezone": "utc",
   "title": "Mission Control — Telemetry Ingest",
