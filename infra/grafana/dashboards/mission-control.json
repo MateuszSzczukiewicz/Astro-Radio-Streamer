@@ -45,7 +45,7 @@
     },
     {
       "title": "Total Data Volume",
-      "description": "Cumulative payload bytes ingested",
+      "description": "Cumulative payload bytes ingested per 5-second bucket",
       "type": "timeseries",
       "gridPos": { "h": 10, "w": 12, "x": 12, "y": 0 },
       "datasource": { "type": "grafana-postgresql-datasource", "uid": "TimescaleDB" },
@@ -62,7 +62,7 @@
             "stacking": { "mode": "none" }
           },
           "unit": "decbytes",
-          "displayName": "cumulative bytes"
+          "displayName": "bytes / 5s"
         },
         "overrides": []
       },
@@ -73,7 +73,7 @@
       "targets": [
         {
           "datasource": { "type": "grafana-postgresql-datasource", "uid": "TimescaleDB" },
-          "rawSql": "SELECT time_bucket('5 seconds', time) AS time, SUM(octet_length(data_field)) OVER (ORDER BY time_bucket('5 seconds', time)) AS volume FROM telemetry WHERE $__timeFilter(time) GROUP BY 1 ORDER BY 1",
+          "rawSql": "SELECT time_bucket('5 seconds', time) AS time, SUM(octet_length(data_field)) AS volume FROM telemetry WHERE $__timeFilter(time) GROUP BY 1 ORDER BY 1",
           "format": "time_series",
           "refId": "A"
         }
@@ -91,7 +91,7 @@
           { "matcher": { "id": "byName", "options": "time" }, "properties": [{ "id": "displayName", "value": "Received At" }] },
           { "matcher": { "id": "byName", "options": "apid" }, "properties": [{ "id": "displayName", "value": "APID" }] },
           { "matcher": { "id": "byName", "options": "data_bytes" }, "properties": [{ "id": "displayName", "value": "Payload Size (B)" }] },
-          { "matcher": { "id": "byName", "options": "fecf" }, "properties": [{ "id": "displayName", "value": "FECF (CRC32)" }] }
+          { "matcher": { "id": "byName", "options": "fecf_hex" }, "properties": [{ "id": "displayName", "value": "FECF (CRC32)" }] }
         ]
       },
       "options": {
@@ -101,7 +101,7 @@
       "targets": [
         {
           "datasource": { "type": "grafana-postgresql-datasource", "uid": "TimescaleDB" },
-          "rawSql": "SELECT time, apid, octet_length(data_field) AS data_bytes, to_hex(fecf::int) AS fecf FROM telemetry ORDER BY time DESC LIMIT 50",
+          "rawSql": "SELECT time, apid, octet_length(data_field) AS data_bytes, lpad(to_hex(fecf::bigint & x'FFFFFFFF'::bigint), 8, '0') AS fecf_hex FROM telemetry ORDER BY time DESC LIMIT 50",
           "format": "table",
           "refId": "A"
         }
@@ -112,7 +112,7 @@
   "schemaVersion": 39,
   "tags": ["telemetry", "ccsds", "mission-control"],
   "templating": { "list": [] },
-  "time": { "from": "now-15m", "to": "now" },
+  "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "utc",
   "title": "Mission Control — Telemetry Ingest",
