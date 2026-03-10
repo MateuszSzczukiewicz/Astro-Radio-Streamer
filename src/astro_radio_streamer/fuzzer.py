@@ -16,7 +16,7 @@ from .protocol.crc import crc32
 HOST = "127.0.0.1"
 PORT = 8888
 
-SYNC_WORD = b"\xAA\xBB"
+ASM = b"\xAA\xBB"
 
 
 def _crc32_bytes(data: bytes) -> bytes:
@@ -25,25 +25,25 @@ def _crc32_bytes(data: bytes) -> bytes:
 
 def build_telemetry_request() -> Request:
     return Request(
-        "telemetry-frame",
+        "space-packet",
         children=(
-            Static("sync", default_value=SYNC_WORD),
+            Static("asm", default_value=ASM),
             Block(
-                "crc-scope",
+                "fecf-scope",
                 children=(
                     DWord(
-                        "frame_id",
+                        "apid",
                         default_value=1,
                         endian=">",
                     ),
                     Size(
-                        "payload_length",
-                        block_name="payload-block",
+                        "data_field_length",
+                        block_name="data-field-block",
                         length=2,
                         endian=">",
                     ),
                     Block(
-                        "payload-block",
+                        "data-field-block",
                         children=(
                             RandomData(
                                 "sensor_data",
@@ -56,8 +56,8 @@ def build_telemetry_request() -> Request:
                 ),
             ),
             Checksum(
-                "crc32",
-                block_name="crc-scope",
+                "fecf",
+                block_name="fecf-scope",
                 algorithm=_crc32_bytes,
                 length=4,
                 endian=">",

@@ -12,14 +12,14 @@ from astro_radio_streamer.db.worker import (
     _flush,
     db_worker,
 )
-from astro_radio_streamer.protocol.frame import TelemetryFrame
+from astro_radio_streamer.protocol.frame import SpacePacket
 
 
-def _frame(fid: int = 1) -> TelemetryFrame:
-    return TelemetryFrame(
-        frame_id=fid,
-        payload=b"\x01\x02",
-        checksum=0xDEAD,
+def _packet(apid: int = 1) -> SpacePacket:
+    return SpacePacket(
+        apid=apid,
+        data_field=b"\x01\x02",
+        fecf=0xDEAD,
         received_at=datetime.now(UTC),
     )
 
@@ -50,6 +50,9 @@ class TestWorkerConstants:
         assert BATCH_SIZE == 100
         assert FLUSH_TIMEOUT == 2.0
         assert "$1" in INSERT_SQL
+        assert "apid" in INSERT_SQL
+        assert "data_field" in INSERT_SQL
+        assert "fecf" in INSERT_SQL
 
 
 class TestFlush:
@@ -63,7 +66,7 @@ class TestFlush:
         )
         mock_pool.acquire.return_value.__aexit__ = AsyncMock(return_value=False)
 
-        batch = [_frame(1), _frame(2)]
+        batch = [_packet(1), _packet(2)]
         await _flush(mock_pool, batch)
         mock_conn.executemany.assert_awaited_once()
         args = mock_conn.executemany.call_args
@@ -78,7 +81,7 @@ class TestFlush:
         )
         mock_pool.acquire.return_value.__aexit__ = AsyncMock(return_value=False)
 
-        await _flush(mock_pool, [_frame(1)])
+        await _flush(mock_pool, [_packet(1)])
 
 
 class TestDbWorker:
@@ -93,8 +96,8 @@ class TestDbWorker:
         mock_pool.acquire.return_value.__aexit__ = AsyncMock(return_value=False)
 
         queue: asyncio.Queue = asyncio.Queue()
-        queue.put_nowait(_frame(1))
-        queue.put_nowait(_frame(2))
+        queue.put_nowait(_packet(1))
+        queue.put_nowait(_packet(2))
 
         task = asyncio.create_task(db_worker(mock_pool, queue))
         await asyncio.sleep(FLUSH_TIMEOUT + 0.5)
@@ -121,7 +124,7 @@ class TestDbWorker:
 
         queue: asyncio.Queue = asyncio.Queue()
         for i in range(BATCH_SIZE):
-            queue.put_nowait(_frame(i))
+            queue.put_nowait(_packet(i))
 
         task = asyncio.create_task(db_worker(mock_pool, queue))
         await asyncio.sleep(0.5)

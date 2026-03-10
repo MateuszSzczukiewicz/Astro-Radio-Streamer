@@ -3,13 +3,13 @@ import struct
 from astro_radio_streamer.fuzzer import (
     HOST,
     PORT,
-    SYNC_WORD,
+    ASM,
     _crc32_bytes,
     build_telemetry_request,
 )
 from astro_radio_streamer.protocol.constants import (
+    ASM_SIZE,
     HEADER_SIZE,
-    SYNC_WORD_SIZE,
 )
 from astro_radio_streamer.protocol.crc import crc32
 from astro_radio_streamer.receiver.buffer import FrameBuffer
@@ -30,32 +30,32 @@ class TestCRC32Bytes:
 class TestBuildRequest:
     def test_request_name(self) -> None:
         req = build_telemetry_request()
-        assert req.name == "telemetry-frame"
+        assert req.name == "space-packet"
 
-    def test_renders_valid_frame(self) -> None:
+    def test_renders_valid_packet(self) -> None:
         raw = build_telemetry_request().render()
-        assert raw[:2] == SYNC_WORD
+        assert raw[:2] == ASM
         assert len(raw) >= HEADER_SIZE + 4
 
     def test_roundtrip_with_parser(self) -> None:
         raw = build_telemetry_request().render()
         buf = FrameBuffer()
-        frames = buf.feed(raw)
-        assert len(frames) == 1
-        assert frames[0].frame_id == 1
-        assert frames[0].payload == b"\x01\x02\x03\x04"
+        pkts = buf.feed(raw)
+        assert len(pkts) == 1
+        assert pkts[0].apid == 1
+        assert pkts[0].data_field == b"\x01\x02\x03\x04"
 
-    def test_crc_valid(self) -> None:
+    def test_fecf_valid(self) -> None:
         raw = build_telemetry_request().render()
-        payload_len = struct.unpack_from(">H", raw, SYNC_WORD_SIZE + 4)[0]
-        crc_offset = HEADER_SIZE + payload_len
-        received_crc = struct.unpack_from(">I", raw, crc_offset)[0]
-        computed = crc32(raw[SYNC_WORD_SIZE:crc_offset])
-        assert received_crc == computed
+        data_field_len = struct.unpack_from(">H", raw, ASM_SIZE + 4)[0]
+        fecf_offset = HEADER_SIZE + data_field_len
+        received_fecf = struct.unpack_from(">I", raw, fecf_offset)[0]
+        computed = crc32(raw[ASM_SIZE:fecf_offset])
+        assert received_fecf == computed
 
 
 class TestFuzzerConstants:
     def test_defaults(self) -> None:
         assert HOST == "127.0.0.1"
         assert PORT == 8888
-        assert SYNC_WORD == b"\xAA\xBB"
+        assert ASM == b"\xAA\xBB"

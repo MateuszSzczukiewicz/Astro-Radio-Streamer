@@ -1,6 +1,6 @@
 import asyncio
 import signal
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -35,23 +35,23 @@ class TestHandleClient:
         writer.wait_closed.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_enqueues_valid_frames(self) -> None:
+    async def test_enqueues_valid_packets(self) -> None:
         import struct
 
-        from astro_radio_streamer.protocol.constants import SYNC_WORD, SYNC_WORD_SIZE
+        from astro_radio_streamer.protocol.constants import ASM, ASM_SIZE
         from astro_radio_streamer.protocol.crc import crc32
 
-        payload = b"\x01\x02\x03\x04"
-        hdr = SYNC_WORD + struct.pack(">IH", 1, len(payload))
-        body = hdr[SYNC_WORD_SIZE:] + payload
-        raw = hdr + payload + struct.pack(">I", crc32(body))
+        data_field = b"\x01\x02\x03\x04"
+        hdr = ASM + struct.pack(">IH", 1, len(data_field))
+        body = hdr[ASM_SIZE:] + data_field
+        raw = hdr + data_field + struct.pack(">I", crc32(body))
 
         reader, writer = _make_reader_writer([raw])
         queue: asyncio.Queue = asyncio.Queue()
         await handle_client(reader, writer, queue)
         assert queue.qsize() == 1
-        frame = queue.get_nowait()
-        assert frame.frame_id == 1
+        pkt = queue.get_nowait()
+        assert pkt.apid == 1
 
     @pytest.mark.asyncio
     async def test_timeout_closes_connection(self) -> None:

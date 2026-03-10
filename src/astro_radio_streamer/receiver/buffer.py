@@ -4,13 +4,13 @@ import logging
 import struct
 
 from ..protocol.constants import (
-    CRC_SIZE,
+    ASM,
+    ASM_SIZE,
+    FECF_SIZE,
     HEADER_SIZE,
-    SYNC_WORD,
-    SYNC_WORD_SIZE,
 )
 from ..protocol.crc import crc32
-from ..protocol.frame import TelemetryFrame
+from ..protocol.frame import SpacePacket
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class FrameBuffer:
         self._buf = bytearray()
         self._max_size = max_size
 
-    def feed(self, chunk: bytes) -> list[TelemetryFrame]:
+    def feed(self, chunk: bytes) -> list[SpacePacket]:
         if len(self._buf) + len(chunk) > self._max_size:
             logger.error(
                 "Buffer overflow attempt: %d + %d > %d B — purging",
@@ -35,13 +35,13 @@ class FrameBuffer:
             return []
 
         self._buf.extend(chunk)
-        frames: list[TelemetryFrame] = []
+        packets: list[SpacePacket] = []
 
         while True:
-            sync_idx = self._buf.find(SYNC_WORD)
+            asm_idx = self._buf.find(ASM)
 
-            if sync_idx == -1:
-                if self._buf[-1:] == SYNC_WORD[:1]:
+            if asm_idx == -1:
+                if self._buf[-1:] == ASM[:1]:
                     tail = self._buf[-1:]
                     self._buf.clear()
                     self._buf.extend(tail)
@@ -49,50 +49,52 @@ class FrameBuffer:
                     self._buf.clear()
                 break
 
-            if sync_idx > 0:
-                del self._buf[:sync_idx]
+            if asm_idx > 0:
+                del self._buf[:asm_idx]
 
             if len(self._buf) < HEADER_SIZE:
                 break
 
-            payload_len = struct.unpack_from(
-                ">H", self._buf, SYNC_WORD_SIZE + 4
+            data_field_len = struct.unpack_from(
+                ">H", self._buf, ASM_SIZE + 4
             )[0]
-            total = HEADER_SIZE + payload_len + CRC_SIZE
+            total = HEADER_SIZE + data_field_len + FECF_SIZE
 
             if len(self._buf) < total:
                 break
 
-            raw_frame = bytes(self._buf[:total])
+            raw_packet = bytes(self._buf[:total])
             del self._buf[:total]
 
-            frame_id = struct.unpack_from(">I", raw_frame, SYNC_WORD_SIZE)[0]
-            payload = raw_frame[HEADER_SIZE : HEADER_SIZE + payload_len]
-            received_crc = struct.unpack_from(
-                ">I", raw_frame, HEADER_SIZE + payload_len
+            apid = struct.unpack_from(">I", raw_packet, ASM_SIZE)[0]
+            data_field = raw_packet[HEADER_SIZE : HEADER_SIZE + data_field_len]
+            received_fecf = struct.unpack_from(
+                ">I", raw_packet, HEADER_SIZE + data_field_len
             )[0]
 
-            computed_crc = crc32(raw_frame[SYNC_WORD_SIZE : HEADER_SIZE + payload_len])
+            computed_fecf = crc32(
+                raw_packet[ASM_SIZE : HEADER_SIZE + data_field_len]
+            )
 
-            if computed_crc != received_crc:
+            if computed_fecf != received_fecf:
                 logger.warning(
-                    "CRC mismatch on frame %d: expected %08X, got %08X",
-                    frame_id,
-                    received_crc,
-                    computed_crc,
+                    "FECF mismatch on APID %d: expected %08X, got %08X",
+                    apid,
+                    received_fecf,
+                    computed_fecf,
                 )
                 continue
 
-            frames.append(
-                TelemetryFrame(
-                    frame_id=frame_id,
-                    payload=payload,
-                    checksum=received_crc,
-                    received_at=TelemetryFrame.timestamp(),
+            packets.append(
+                SpacePacket(
+                    apid=apid,
+                    data_field=data_field,
+                    fecf=received_fecf,
+                    received_at=SpacePacket.timestamp(),
                 )
             )
 
-        return frames
+        return packets
 
     @property
     def pending(self) -> int:

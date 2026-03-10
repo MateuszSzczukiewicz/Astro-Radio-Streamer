@@ -3,14 +3,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from .types import Checksum, FrameId, RawPayload, ReceivedAt
+from .types import APID, FECF, PacketDataField, ReceivedAt
 
 
 @dataclass(frozen=True, slots=True)
-class TelemetryFrame:
-    frame_id: FrameId
-    payload: RawPayload
-    checksum: Checksum
+class SpacePacket:
+    apid: APID
+    data_field: PacketDataField
+    fecf: FECF
     received_at: ReceivedAt
 
     @staticmethod

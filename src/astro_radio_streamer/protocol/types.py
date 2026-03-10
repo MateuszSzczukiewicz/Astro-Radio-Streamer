@@ -1,6 +1,6 @@
 from datetime import datetime
 
-type FrameId = int
-type RawPayload = bytes
-type Checksum = int
+type APID = int
+type PacketDataField = bytes
+type FECF = int
 type ReceivedAt = datetime

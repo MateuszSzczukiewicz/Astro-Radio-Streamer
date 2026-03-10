@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from .buffer import READ_SIZE, FrameBuffer
 
 if TYPE_CHECKING:
-    from ..protocol.frame import TelemetryFrame
+    from ..protocol.frame import SpacePacket
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ READ_TIMEOUT = 10.0
 async def handle_client(
     reader: asyncio.StreamReader,
     writer: asyncio.StreamWriter,
-    queue: asyncio.Queue[TelemetryFrame],
+    queue: asyncio.Queue[SpacePacket],
 ) -> None:
     peer = writer.get_extra_info("peername")
     logger.info("Connection from %s", peer)
@@ -36,15 +36,15 @@ async def handle_client(
             if not data:
                 break
 
-            frames = buf.feed(data)
+            packets = buf.feed(data)
 
-            for frame in frames:
-                queue.put_nowait(frame)
+            for packet in packets:
+                queue.put_nowait(packet)
 
-            if frames:
+            if packets:
                 logger.info(
-                    "Enqueued %d frames (buffer: %d B, queue: %d)",
-                    len(frames),
+                    "Enqueued %d packets (buffer: %d B, queue: %d)",
+                    len(packets),
                     buf.pending,
                     queue.qsize(),
                 )
@@ -59,7 +59,7 @@ async def handle_client(
 
 
 async def start_server(
-    queue: asyncio.Queue[TelemetryFrame],
+    queue: asyncio.Queue[SpacePacket],
     host: str = HOST,
     port: int = PORT,
 ) -> None:

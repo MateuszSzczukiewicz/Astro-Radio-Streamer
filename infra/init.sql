@@ -2,9 +2,9 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;
 
 CREATE TABLE IF NOT EXISTS telemetry (
     time            TIMESTAMPTZ     NOT NULL,
-    frame_id        INTEGER         NOT NULL,
-    payload         BYTEA           NOT NULL,
-    checksum        BIGINT          NOT NULL,
+    apid            INTEGER         NOT NULL,
+    data_field      BYTEA           NOT NULL,
+    fecf            BIGINT          NOT NULL,
     rssi            SMALLINT,
     temperature     REAL
 );
