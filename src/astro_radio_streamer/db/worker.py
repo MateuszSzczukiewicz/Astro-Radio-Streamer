@@ -3,12 +3,15 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import time
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from asyncpg import Pool
 
     from ..protocol.frame import SpacePacket
+
+from ..metrics import db_flush_duration_seconds, db_flush_packets_total
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +54,12 @@ async def db_worker(
 async def _flush(pool: Pool, batch: list[SpacePacket]) -> None:
     records = [(p.received_at, p.apid, p.data_field, p.fecf) for p in batch]
 
+    t0 = time.monotonic()
     try:
         async with pool.acquire() as conn:
             await conn.executemany(INSERT_SQL, records)
+        db_flush_duration_seconds.observe(time.monotonic() - t0)
+        db_flush_packets_total.inc(len(batch))
         logger.info("Flushed %d packets to TimescaleDB", len(batch))
     except Exception:
         logger.exception("Failed to flush %d packets", len(batch))

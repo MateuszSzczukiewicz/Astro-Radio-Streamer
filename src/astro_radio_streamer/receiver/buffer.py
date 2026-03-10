@@ -13,6 +13,12 @@ from ..protocol.constants import (
 from ..protocol.crc import crc32
 from ..protocol.frame import SpacePacket
 
+from ..metrics import (
+    buffer_overflows_total,
+    packets_crc_failed_total,
+    packets_received_total,
+)
+
 logger = logging.getLogger(__name__)
 
 READ_SIZE = 4096
@@ -33,6 +39,7 @@ class FrameBuffer:
                 self._max_size,
             )
             self._buf.clear()
+            buffer_overflows_total.inc()
             return []
 
         self._buf.extend(chunk)
@@ -80,8 +87,10 @@ class FrameBuffer:
                     received_fecf,
                     computed_fecf,
                 )
+                packets_crc_failed_total.inc()
                 continue
 
+            packets_received_total.inc()
             packets.append(
                 SpacePacket(
                     apid=apid,

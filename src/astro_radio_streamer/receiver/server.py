@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING
 
 from .buffer import READ_SIZE, FrameBuffer
 
+from ..metrics import connections_active, queue_depth
+
 if TYPE_CHECKING:
     from ..protocol.frame import SpacePacket
 
@@ -25,6 +27,7 @@ async def handle_client(
 ) -> None:
     peer = writer.get_extra_info("peername")
     logger.info("Connection from %s", peer)
+    connections_active.inc()
 
     buf = FrameBuffer()
 
@@ -41,6 +44,7 @@ async def handle_client(
 
             for packet in packets:
                 queue.put_nowait(packet)
+            queue_depth.set(queue.qsize())
 
             if packets:
                 logger.info(
@@ -54,6 +58,7 @@ async def handle_client(
     except ConnectionError:
         logger.warning("Connection lost: %s", peer)
     finally:
+        connections_active.dec()
         writer.close()
         await writer.wait_closed()
         logger.info("Closed connection: %s", peer)

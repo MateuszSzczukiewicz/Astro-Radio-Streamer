@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from ..db.pool import create_pool
 from ..db.worker import db_worker
+from ..metrics import start_metrics_server
 from .server import start_server
 
 if TYPE_CHECKING:
@@ -18,6 +19,7 @@ logging.basicConfig(
 
 
 async def _run() -> None:
+    start_metrics_server()
     pool = await create_pool()
     queue: asyncio.Queue[SpacePacket] = asyncio.Queue(maxsize=10_000)
 

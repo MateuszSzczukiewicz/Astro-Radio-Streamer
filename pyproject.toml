@@ -5,7 +5,7 @@ description = "High-Throughput Telemetry Ingestion Simulator"
 requires-python = ">=3.13"
 readme = "README.md"
 license = { text = "MIT" }
-dependencies = ["asyncpg>=0.30"]
+dependencies = ["asyncpg>=0.30", "prometheus-client>=0.22"]
 
 [project.scripts]
 astro-receiver = "astro_radio_streamer.receiver.__main__:main"
