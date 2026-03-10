@@ -1,6 +1,10 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "astro-radio-streamer"
-version = "0.1.0"
+version = "1.0.0"
 description = "High-Throughput Telemetry Ingestion Simulator"
 requires-python = ">=3.13"
 readme = "README.md"
