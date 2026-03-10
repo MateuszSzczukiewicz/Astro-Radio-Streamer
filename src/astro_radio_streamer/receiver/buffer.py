@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import struct
 
 from ..protocol.constants import (
@@ -15,7 +16,7 @@ from ..protocol.frame import SpacePacket
 logger = logging.getLogger(__name__)
 
 READ_SIZE = 4096
-MAX_BUFFER_SIZE = 1_048_576
+MAX_BUFFER_SIZE = int(os.environ.get("MAX_BUFFER_SIZE", "1048576"))
 
 
 class FrameBuffer:

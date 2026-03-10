@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -11,8 +12,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-BATCH_SIZE = 100
-FLUSH_TIMEOUT = 2.0
+BATCH_SIZE = int(os.environ.get("BATCH_SIZE", "100"))
+FLUSH_TIMEOUT = float(os.environ.get("FLUSH_TIMEOUT", "2.0"))
 
 INSERT_SQL = """
     INSERT INTO telemetry (time, apid, data_field, fecf)

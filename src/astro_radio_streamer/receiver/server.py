@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import signal
 from typing import TYPE_CHECKING
 
@@ -12,9 +13,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-HOST = "0.0.0.0"  # nosec B104
-PORT = 8888
-READ_TIMEOUT = 10.0
+HOST = os.environ.get("RECEIVER_HOST", "0.0.0.0")  # nosec B104
+PORT = int(os.environ.get("RECEIVER_PORT", "8888"))
+READ_TIMEOUT = float(os.environ.get("READ_TIMEOUT", "10.0"))
 
 
 async def handle_client(

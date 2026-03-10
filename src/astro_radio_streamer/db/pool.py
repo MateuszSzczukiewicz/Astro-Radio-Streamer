@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import TYPE_CHECKING
 
 import asyncpg
@@ -10,7 +11,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-DSN = "postgresql://astro:astro@localhost:5432/telemetry"
+DSN = os.environ.get(
+    "DATABASE_URL", "postgresql://astro:astro@localhost:5432/telemetry"
+)
 
 
 async def create_pool(dsn: str = DSN) -> Pool:
