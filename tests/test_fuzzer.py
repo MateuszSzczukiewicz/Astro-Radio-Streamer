@@ -58,4 +58,4 @@ class TestFuzzerConstants:
     def test_defaults(self) -> None:
         assert HOST == "127.0.0.1"
         assert PORT == 8888
-        assert ASM == b"\xAA\xBB"
+        assert ASM == b"\xaa\xbb"

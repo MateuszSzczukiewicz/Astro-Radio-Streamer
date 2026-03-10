@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-HOST = "0.0.0.0"
+HOST = "0.0.0.0"  # nosec B104
 PORT = 8888
 READ_TIMEOUT = 10.0
 

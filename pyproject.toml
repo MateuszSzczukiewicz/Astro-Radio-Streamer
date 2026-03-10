@@ -12,7 +12,7 @@ astro-receiver = "astro_radio_streamer.receiver.__main__:main"
 astro-fuzzer = "astro_radio_streamer.fuzzer:main"
 
 [dependency-groups]
-dev = ["pytest>=8.4", "pytest-asyncio>=0.26", "pytest-cov>=6.1", "ruff>=0.11", "mypy>=1.15", "boofuzz>=0.4"]
+dev = ["pytest>=8.4", "pytest-asyncio>=0.26", "pytest-cov>=6.1", "ruff>=0.11", "mypy>=1.15", "bandit>=1.9", "boofuzz>=0.4"]
 
 [tool.ruff]
 target-version = "py313"

@@ -2,10 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import TYPE_CHECKING
 
 from ..db.pool import create_pool
 from ..db.worker import db_worker
 from .server import start_server
+
+if TYPE_CHECKING:
+    from ..protocol.frame import SpacePacket
 
 logging.basicConfig(
     level=logging.INFO,
@@ -15,7 +19,7 @@ logging.basicConfig(
 
 async def _run() -> None:
     pool = await create_pool()
-    queue: asyncio.Queue = asyncio.Queue(maxsize=10_000)
+    queue: asyncio.Queue[SpacePacket] = asyncio.Queue(maxsize=10_000)
 
     worker_task = asyncio.create_task(db_worker(pool, queue))
 

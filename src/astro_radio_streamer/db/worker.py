@@ -48,10 +48,7 @@ async def db_worker(
 
 
 async def _flush(pool: Pool, batch: list[SpacePacket]) -> None:
-    records = [
-        (p.received_at, p.apid, p.data_field, p.fecf)
-        for p in batch
-    ]
+    records = [(p.received_at, p.apid, p.data_field, p.fecf) for p in batch]
 
     try:
         async with pool.acquire() as conn:

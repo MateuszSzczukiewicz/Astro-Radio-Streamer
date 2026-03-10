@@ -41,7 +41,7 @@ class TestFrameBufferBasic:
 
     def test_large_data_field(self) -> None:
         buf = FrameBuffer()
-        data = b"\xFF" * 1000
+        data = b"\xff" * 1000
         raw = _encode(5, data)
         pkts = buf.feed(raw)
         assert len(pkts) == 1
@@ -51,7 +51,7 @@ class TestFrameBufferBasic:
 class TestFrameBufferGarbage:
     def test_garbage_prefix(self) -> None:
         buf = FrameBuffer()
-        raw = b"\xFF\xFF\xFF\x00\x00" + _encode(42, b"DATA")
+        raw = b"\xff\xff\xff\x00\x00" + _encode(42, b"DATA")
         pkts = buf.feed(raw)
         assert len(pkts) == 1
         assert pkts[0].apid == 42
@@ -64,7 +64,7 @@ class TestFrameBufferGarbage:
 
     def test_garbage_between_packets(self) -> None:
         buf = FrameBuffer()
-        raw = _encode(1, b"A") + b"\xFF\xFF" + _encode(2, b"B")
+        raw = _encode(1, b"A") + b"\xff\xff" + _encode(2, b"B")
         pkts = buf.feed(raw)
         assert len(pkts) == 2
         assert pkts[0].apid == 1
@@ -91,16 +91,16 @@ class TestFrameBufferPartial:
 
     def test_split_asm(self) -> None:
         buf = FrameBuffer()
-        assert buf.feed(b"\xFF\xAA") == []
+        assert buf.feed(b"\xff\xaa") == []
         assert buf.pending == 1
         raw = _encode(99, b"SYNC")
-        pkts = buf.feed(b"\xBB" + raw[ASM_SIZE:])
+        pkts = buf.feed(b"\xbb" + raw[ASM_SIZE:])
         assert len(pkts) == 1
         assert pkts[0].apid == 99
 
     def test_no_trailing_asm_byte(self) -> None:
         buf = FrameBuffer()
-        assert buf.feed(b"\xFF\xFF\x00") == []
+        assert buf.feed(b"\xff\xff\x00") == []
         assert buf.pending == 0
 
 

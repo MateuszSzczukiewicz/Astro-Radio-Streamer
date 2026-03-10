@@ -1,4 +1,4 @@
-ASM = b"\xAA\xBB"
+ASM = b"\xaa\xbb"
 ASM_SIZE = len(ASM)
 APID_SIZE = 4
 DATA_FIELD_LEN_SIZE = 2

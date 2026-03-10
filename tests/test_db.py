@@ -61,9 +61,7 @@ class TestFlush:
         mock_conn = AsyncMock()
         mock_pool = MagicMock()
         mock_pool.acquire = MagicMock(return_value=AsyncMock())
-        mock_pool.acquire.return_value.__aenter__ = AsyncMock(
-            return_value=mock_conn
-        )
+        mock_pool.acquire.return_value.__aenter__ = AsyncMock(return_value=mock_conn)
         mock_pool.acquire.return_value.__aexit__ = AsyncMock(return_value=False)
 
         batch = [_packet(1), _packet(2)]
@@ -90,9 +88,7 @@ class TestDbWorker:
         mock_conn = AsyncMock()
         mock_pool = MagicMock()
         mock_pool.acquire = MagicMock(return_value=AsyncMock())
-        mock_pool.acquire.return_value.__aenter__ = AsyncMock(
-            return_value=mock_conn
-        )
+        mock_pool.acquire.return_value.__aenter__ = AsyncMock(return_value=mock_conn)
         mock_pool.acquire.return_value.__aexit__ = AsyncMock(return_value=False)
 
         queue: asyncio.Queue = asyncio.Queue()
@@ -117,9 +113,7 @@ class TestDbWorker:
         mock_conn = AsyncMock()
         mock_pool = MagicMock()
         mock_pool.acquire = MagicMock(return_value=AsyncMock())
-        mock_pool.acquire.return_value.__aenter__ = AsyncMock(
-            return_value=mock_conn
-        )
+        mock_pool.acquire.return_value.__aenter__ = AsyncMock(return_value=mock_conn)
         mock_pool.acquire.return_value.__aexit__ = AsyncMock(return_value=False)
 
         queue: asyncio.Queue = asyncio.Queue()
@@ -144,9 +138,7 @@ class TestDbWorker:
         mock_conn = AsyncMock()
         mock_pool = MagicMock()
         mock_pool.acquire = MagicMock(return_value=AsyncMock())
-        mock_pool.acquire.return_value.__aenter__ = AsyncMock(
-            return_value=mock_conn
-        )
+        mock_pool.acquire.return_value.__aenter__ = AsyncMock(return_value=mock_conn)
         mock_pool.acquire.return_value.__aexit__ = AsyncMock(return_value=False)
 
         queue: asyncio.Queue = asyncio.Queue()

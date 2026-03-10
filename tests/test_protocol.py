@@ -33,7 +33,7 @@ class TestTypes:
 
 class TestConstants:
     def test_asm(self) -> None:
-        assert ASM == b"\xAA\xBB"
+        assert ASM == b"\xaa\xbb"
         assert ASM_SIZE == 2
 
     def test_sizes(self) -> None:
@@ -52,7 +52,7 @@ class TestCRC32:
         assert crc32(b"123456789") == 0xCBF43926
 
     def test_deterministic(self) -> None:
-        data = b"\xDE\xAD\xBE\xEF"
+        data = b"\xde\xad\xbe\xef"
         assert crc32(data) == crc32(data)
 
     def test_different_inputs(self) -> None:

@@ -55,9 +55,7 @@ class FrameBuffer:
             if len(self._buf) < HEADER_SIZE:
                 break
 
-            data_field_len = struct.unpack_from(
-                ">H", self._buf, ASM_SIZE + 4
-            )[0]
+            data_field_len = struct.unpack_from(">H", self._buf, ASM_SIZE + 4)[0]
             total = HEADER_SIZE + data_field_len + FECF_SIZE
 
             if len(self._buf) < total:
@@ -72,9 +70,7 @@ class FrameBuffer:
                 ">I", raw_packet, HEADER_SIZE + data_field_len
             )[0]
 
-            computed_fecf = crc32(
-                raw_packet[ASM_SIZE : HEADER_SIZE + data_field_len]
-            )
+            computed_fecf = crc32(raw_packet[ASM_SIZE : HEADER_SIZE + data_field_len])
 
             if computed_fecf != received_fecf:
                 logger.warning(
